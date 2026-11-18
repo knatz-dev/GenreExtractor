@@ -8,20 +8,19 @@ from _decimal import ROUND_UP
 import numpy as np
 from collections import OrderedDict
 from enum import Enum
+import joblib
 from sklearn.base import ClassifierMixin
 from sklearn.calibration import CalibratedClassifierCV
-from sklearn.externals import joblib
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
-from sklearn.metrics.classification import accuracy_score
-from sklearn.metrics.classification import confusion_matrix
-from sklearn.metrics.ranking import coverage_error
-from sklearn.metrics.ranking import label_ranking_average_precision_score
-from sklearn.metrics.ranking import label_ranking_loss
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import coverage_error
+from sklearn.metrics import label_ranking_average_precision_score
+from sklearn.metrics import label_ranking_loss
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
-from sklearn.svm import libsvm
 from sklearn.svm import LinearSVC
 from Utilities import FileManager
 
@@ -105,13 +104,12 @@ class GenreClassifier(object):
 
         classifier = Pipeline([('vectorizer', bow),
                                ('tfidf', TfidfTransformer()),
-                               ('clf', LinearSVC()),
-                               ('calib', CalibratedClassifierCV())])
+                               ('clf', CalibratedClassifierCV(estimator=LinearSVC()))])
 
         classifier.fit(train_documents, train_genres)
 
         bow = classifier.named_steps['vectorizer']
-        features = bow.get_feature_names()
+        features = bow.get_feature_names_out()
         counts = bow.transform(train_documents).toarray().sum(axis=0)
         tfidf = classifier.named_steps['tfidf']
         tfidf_scores = tfidf.idf_
@@ -180,7 +178,7 @@ class GenreClassifier(object):
         classifier.fit(documents, genreLabels)
 
         bow = classifier.named_steps['vectorizer']
-        features = bow.get_feature_names()
+        features = bow.get_feature_names_out()
         counts = bow.transform(documents).toarray().sum(axis=0)
 
         sif_feat = zip(features, counts)

@@ -775,10 +775,13 @@ class TextSanitizer(object):
         if not raw_text:
             raise ValueError("{} is empty from {}".format(
                 "raw_text", "transform_word_case"))
-        raw_text.strip()
-        if (raw_text[0] == raw_text[-1]) and raw_text.startswith(("'", '"')):
+        raw_text = raw_text.strip()
+        # config values historically written as ``value`` with a trailing comma
+        if raw_text.startswith('`') and raw_text.endswith('`'):
+            raw_text = raw_text[1:-1]
+        raw_text = raw_text.rstrip(',').strip()
+        if len(raw_text) >= 2 and raw_text[0] == raw_text[-1] and raw_text[0] in ("'", '"'):
             return raw_text[1:-1]
-            pass
         return raw_text
 
     pass  # end of TextSanitizer
@@ -839,7 +842,7 @@ class ConfigUtils(object):
         section : str, optional
             Section name
         """
-        self.config[section.upper()][setting.lower()] = "`{}`,".format(value)
+        self.config[section.upper()][setting.lower()] = str(value)
         pass
 
     def save(self):

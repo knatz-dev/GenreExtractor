@@ -10,10 +10,10 @@ import tkinter as tk
 from Utilities import *
 from builtins import *
 from collections import OrderedDict
-from pandas_ml.confusion_matrix.cm import ConfusionMatrix
 from sklearn import preprocessing
-from sklearn.metrics.classification import accuracy_score
-from sklearn.metrics.classification import classification_report
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report
+from Utilities.confusion import ConfusionMatrix
 from tkinter import *
 from tkinter.ttk import *
 import webbrowser
@@ -29,11 +29,11 @@ from CustomControls import ConsoleWidget
 from CustomControls import StatusBar
 from PIL.ImageTk import Image
 from PIL.ImageTk import PhotoImage
-from idlelib.ToolTip import ToolTip
+from idlelib.tooltip import Hovertip
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
-from tkFontChooser import FontChooser
-from tkFontChooser import askfont
+from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
+from tkfontchooser import FontChooser
+from tkfontchooser import askfont
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter.scrolledtext import ScrolledText
@@ -141,13 +141,13 @@ class MainForm(object):
         copy_button = Button(toolbar, image=copy_icon, command=self.onCopy)
         paste_button = Button(toolbar, image=paste_icon, command=self.onPaste)
 
-        ToolTip(new_button, ["New", "Text"])
-        ToolTip(open_button, ["Open", "File"])
-        ToolTip(save_button, ["Save", "File"])
-        ToolTip(saveas_button, ["Save", "As"])
-        ToolTip(cut_button, ["Cut", "Text"])
-        ToolTip(copy_button, ["Copy", "Text"])
-        ToolTip(paste_button, ["Paste", "Text"])
+        Hovertip(new_button, "New\nText")
+        Hovertip(open_button, "Open\nFile")
+        Hovertip(save_button, "Save\nFile")
+        Hovertip(saveas_button, "Save\nAs")
+        Hovertip(cut_button, "Cut\nText")
+        Hovertip(copy_button, "Copy\nText")
+        Hovertip(paste_button, "Paste\nText")
 
         new_button.image = new_icon
         open_button.image = open_icon
@@ -194,12 +194,12 @@ class MainForm(object):
         clear_button = Button(searchFrm, image=clear_icon,
                               command=self.onClearText)
 
-        ToolTip(clear_button, ["Clear", "Found", "Text"])
+        Hovertip(clear_button, "Clear\nFound\nText")
 
         find_button.image = find_icon
         clear_button.image = clear_icon
 
-        ToolTip(find_button, ["Find", "Text"])
+        Hovertip(find_button, "Find\nText")
 
         self.find_text.pack(side=LEFT, fill=Y, padx=0, pady=3)
         find_button.pack(side=LEFT, padx=0, pady=1)
@@ -306,7 +306,7 @@ class MainForm(object):
 
         plt.gca().set_aspect('equal', adjustable='box')
 
-        toolbar = NavigationToolbar2TkAgg(self.canvas, pltframe)
+        toolbar = NavigationToolbar2Tk(self.canvas, pltframe)
         toolbar.update()
 
         self.canvas._tkcanvas.pack(side=BOTTOM, fill=BOTH, expand=TRUE)
@@ -316,7 +316,7 @@ class MainForm(object):
 
     def _make_plot(self, plot1: tuple, plot2: tuple):
         plt.style.use('ggplot')
-        colors = plt.rcParams['axes.color_cycle']
+        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
         self._ax1.clear()
         self._ax2.clear()
@@ -1587,7 +1587,7 @@ class MainGenreForm(Toplevel):
         self.canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=TRUE)
         self.canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=TRUE)
 
-        toolbar = NavigationToolbar2TkAgg(self.canvas, pltframe)
+        toolbar = NavigationToolbar2Tk(self.canvas, pltframe)
         toolbar.update()
         toolbar.pack(side=TOP, fill=BOTH, expand=FALSE)
 
@@ -1627,7 +1627,7 @@ class MainGenreForm(Toplevel):
         self.canvas2.get_tk_widget().pack(side=TOP, fill=BOTH, expand=TRUE)
         self.canvas2._tkcanvas.pack(side=TOP, fill=BOTH, expand=TRUE)
 
-        toolbar = NavigationToolbar2TkAgg(self.canvas2, pltframe)
+        toolbar = NavigationToolbar2Tk(self.canvas2, pltframe)
         toolbar.update()
         toolbar.pack(side=TOP, fill=BOTH, expand=FALSE)
 
@@ -1663,7 +1663,9 @@ class MainGenreForm(Toplevel):
         plot_class_report(class_report, "wide")
         self.canvas.draw()
 
-        plot_confusion_matrix(confusion_matrix)
+        if confusion_matrix is not None:
+            plot_confusion_matrix(confusion_matrix)
+            pass
         self.canvas2.draw()
         pass
 
@@ -1847,7 +1849,8 @@ class MainGenreForm(Toplevel):
         """
         start_spinner(self.spinner)
 
-        threading._start_new_thread(self.process_main_genre, ())
+        self.processing_thread = threading.Thread(target=self.process_main_genre, args=())
+        self.processing_thread.start()
 
         pass
 
@@ -2127,7 +2130,7 @@ class SubGenreForm(Toplevel):
         self.canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=TRUE)
         self.canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=TRUE)
 
-        self.toolbar = NavigationToolbar2TkAgg(self.canvas, pltframe)
+        self.toolbar = NavigationToolbar2Tk(self.canvas, pltframe)
         self.toolbar.update()
         self.toolbar.pack(side=TOP, fill=BOTH, expand=FALSE)
 
@@ -2294,7 +2297,7 @@ class SubGenreForm(Toplevel):
                     self.sub_confusion.insert(1.0, last_class_report)
 
                     self._display_feature_metrics()
-                    self._refresh_plots(self.class_report, lblbinarizer.classes_)
+                    self._refresh_plots(self.class_report, None)
 
                     LogUtils.write("info", "Fantasy Sub Classifier trained, tested and assessed.")
                     LogUtils.write("critical", "Remember to save the classifier!")
@@ -2344,7 +2347,8 @@ class SubGenreForm(Toplevel):
         """
         start_spinner(self.spinner)
 
-        t = threading._start_new_thread(self.process_sub_genre, ())
+        self.processing_thread = threading.Thread(target=self.process_sub_genre, args=())
+        self.processing_thread.start()
         pass
 
     def onSaveSubGenreClassifier(self, event=None):
