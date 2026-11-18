@@ -584,7 +584,7 @@ class MainForm(object):
 
         if font:
             # spaces in the family name need to be escaped
-            font['family'] = font['family'].replace(' ', '\ ')
+            font['family'] = font['family'].replace(' ', '\\ ')
             font_str = "%(family)s %(size)i %(weight)s %(slant)s" % font
             if font['underline']:
                 font_str += ' underline'
@@ -592,7 +592,7 @@ class MainForm(object):
             if font['overstrike']:
                 font_str += ' overstrike'
                 pass
-            self.statebar.set("Chosen font: {}".format(font_str.replace('\ ', ' ')))
+            self.statebar.set("Chosen font: {}".format(font_str.replace('\\ ', ' ')))
             pass
             self.raw_text_area.configure(font=font_str)
             self.find_text.configure(font=font_str)
@@ -688,7 +688,7 @@ class MainForm(object):
         TYPE
             Description
         """
-        filename = "Documentation\_build\html\index.html"
+        filename = r"Documentation\_build\html\index.html"
         webbrowser.open('file://' + os.path.realpath(filename))
         pass
 
